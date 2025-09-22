@@ -1,0 +1,67 @@
+{
+  "project": {
+    "name": "Restaurant 95",
+    "version": "1.0.0",
+    "tagline": "Operating System for Restaurant Technology",
+    "description": "AI-native platform unifying order management, courier orchestration, and customer engagement for restaurants",
+    "inception_date": "2024-01-01",
+    "status": "MVP Development",
+    "website": "https://restaurant95.com",
+    "documentation_version": "1.0.0",
+    "last_updated": "2024-01-15"
+  },
+  "vision": {
+    "mission_statement": "Transform restaurant operations through AI-first architecture, creating Turkey's first brilliant restaurant management platform",
+    "inspiration": "Like Windows 95 revolutionized personal computing, Restaurant 95 revolutionizes restaurant technology",
+    "core_values": [
+      "AI-native from day one",
+      "Zero swivel-chair operations",
+      "Data monopoly through network effects",
+      "Opinionated design over customization"
+    ],
+    "success_metrics": {
+      "year_1": {
+        "restaurants": 5000,
+        "gmv_usd": 100000000,
+        "cities": 15,
+        "market_share_percent": 10
+      },
+      "year_3": {
+        "restaurants": 100000,
+        "gmv_usd": 5000000000,
+        "countries": 10,
+        "valuation_usd": 5000000000
+      }
+    }
+  },
+  "market_context": {
+    "competitors": [
+      {
+        "name": "Owner.com",
+        "valuation_usd": 1000000000,
+        "strengths": ["Anti-customization philosophy", "10K+ restaurants", "AI Executives concept"],
+        "weaknesses": ["US-only", "No delivery management", "No POS integration"]
+      },
+      {
+        "name": "Toast",
+        "valuation_usd": 12000000000,
+        "strengths": ["Complete POS solution", "148K locations", "Public company"],
+        "weaknesses": ["Not AI-native", "Expensive", "US-focused"]
+      },
+      {
+        "name": "Yemeksepeti",
+        "users": 11000000,
+        "strengths": ["Turkish market leader", "Delivery network"],
+        "weaknesses": ["High commissions", "No restaurant OS features"]
+      }
+    ],
+    "differentiation": {
+      "unique_value_props": [
+        "First AI-native restaurant OS in Turkey",
+        "Integrated delivery + POS + marketing",
+        "Turkish regulatory compliance built-in",
+        "Zero upfront cost model"
+      ]
+    }
+  }
+}
