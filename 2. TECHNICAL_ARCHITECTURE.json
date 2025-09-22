@@ -1,0 +1,121 @@
+{
+  "architecture": {
+    "type": "Microservices with AI Orchestration Layer",
+    "pattern": "Event-driven with CQRS",
+    "deployment": "Cloud-native Kubernetes"
+  },
+  "layers": {
+    "orchestration": {
+      "description": "AI agents that make decisions",
+      "components": [
+        {
+          "name": "AI Orchestrator",
+          "agents": ["GPT-5", "Claude-3.5", "Specialized ML models"],
+          "responsibility": "Decision making and tool selection",
+          "communication": "Tool-calling JSON protocol"
+        }
+      ]
+    },
+    "bridge": {
+      "description": "Middleware translating AI decisions to API calls",
+      "components": [
+        {
+          "name": "Restaurant95 Bridge",
+          "technology": "Node.js + Fastify",
+          "features": [
+            "Idempotency management",
+            "HMAC authentication",
+            "Circuit breaker pattern",
+            "Distributed locking",
+            "Audit logging"
+          ],
+          "endpoints": [
+            "POST /tool-call",
+            "GET /health",
+            "GET /metrics"
+          ]
+        }
+      ]
+    },
+    "services": {
+      "description": "Core business services",
+      "components": [
+        {
+          "name": "Order Service",
+          "technology": "Node.js",
+          "database": "PostgreSQL",
+          "apis": ["create_order", "get_order_status", "update_order"]
+        },
+        {
+          "name": "Courier Service",
+          "technology": "Go",
+          "database": "PostgreSQL + Redis",
+          "apis": ["assign_courier", "track_courier", "optimize_route"]
+        },
+        {
+          "name": "Analytics Service",
+          "technology": "Python",
+          "database": "TimescaleDB + ClickHouse",
+          "apis": ["get_insights", "predict_demand", "benchmark"]
+        },
+        {
+          "name": "POS Integration Service",
+          "technology": "Node.js",
+          "integrations": ["Adisyo", "SambaPOS", "Menulux"],
+          "apis": ["sync_menu", "pull_transactions", "push_order"]
+        }
+      ]
+    },
+    "data": {
+      "description": "Data layer components",
+      "databases": [
+        {
+          "name": "Primary Database",
+          "type": "PostgreSQL 15",
+          "purpose": "Transactional data",
+          "multi_tenancy": "Schema-per-tenant"
+        },
+        {
+          "name": "Time Series Database",
+          "type": "TimescaleDB",
+          "purpose": "Metrics and analytics",
+          "retention": "2 years"
+        },
+        {
+          "name": "Cache Layer",
+          "type": "Redis",
+          "purpose": "Session, cache, real-time data",
+          "provider": "Upstash"
+        },
+        {
+          "name": "Vector Database",
+          "type": "Pinecone",
+          "purpose": "AI embeddings and semantic search"
+        }
+      ]
+    }
+  },
+  "infrastructure": {
+    "cloud_provider": "AWS primary, DigitalOcean backup",
+    "regions": ["eu-central-1", "eu-west-1"],
+    "kubernetes": {
+      "distribution": "EKS",
+      "version": "1.28",
+      "ingress": "AWS ALB",
+      "service_mesh": "Istio"
+    },
+    "cicd": {
+      "vcs": "GitHub",
+      "ci": "GitHub Actions",
+      "cd": "ArgoCD",
+      "environments": ["dev", "staging", "production"]
+    },
+    "monitoring": {
+      "logs": "ELK Stack",
+      "metrics": "Prometheus + Grafana",
+      "tracing": "Jaeger",
+      "errors": "Sentry",
+      "analytics": "PostHog"
+    }
+  }
+}
