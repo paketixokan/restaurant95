@@ -1,0 +1,165 @@
+{
+  "environments": {
+    "development": {
+      "url": "https://dev.restaurant95.com",
+      "infrastructure": "Kubernetes on DigitalOcean",
+      "database": "Shared PostgreSQL instance",
+      "data_refresh": "Daily from staging",
+      "access": "VPN required"
+    },
+    "staging": {
+      "url": "https://staging.restaurant95.com",
+      "infrastructure": "Kubernetes on AWS EKS",
+      "database": "Dedicated RDS instance",
+      "data_refresh": "Weekly anonymized from production",
+      "access": "IP whitelist"
+    },
+    "production": {
+      "url": "https://api.restaurant95.com",
+      "infrastructure": "Multi-region AWS EKS",
+      "database": "Aurora PostgreSQL Multi-AZ",
+      "cdn": "CloudFront",
+      "access": "Public with rate limiting"
+    }
+  },
+  "deployment_pipeline": {
+    "trigger": "Git push to main branch",
+    "stages": [
+      {
+        "name": "Build",
+        "steps": [
+          "Run unit tests",
+          "Build Docker images",
+          "Security scanning (Trivy)",
+          "Push to ECR"
+        ]
+      },
+      {
+        "name": "Deploy to Staging",
+        "steps": [
+          "Update Kubernetes manifests",
+          "ArgoCD sync",
+          "Run integration tests",
+          "Load testing"
+        ]
+      },
+      {
+        "name": "Deploy to Production",
+        "approval": "Manual via Slack",
+        "strategy": "Blue-green deployment",
+        "rollback": "Automatic on error rate > 1%"
+      }
+    ]
+  },
+  "kubernetes_config": {
+    "namespace_strategy": "Environment-based",
+    "resource_limits": {
+      "api_service": {
+        "cpu": "2000m",
+        "memory": "4Gi",
+        "replicas": {
+          "min": 3,
+          "max": 20
+        }
+      },
+      "worker_service": {
+        "cpu": "1000m",
+        "memory": "2Gi",
+        "replicas": {
+          "min": 2,
+          "max": 10
+        }
+      }
+    },
+    "autoscaling": {
+      "metrics": ["cpu", "memory", "custom/requests_per_second"],
+      "target_utilization": 70
+    },
+    "health_checks": {
+      "liveness": "/health/live",
+      "readiness": "/health/ready",
+      "startup": "/health/startup"
+    }
+  },
+  "monitoring": {
+    "metrics": {
+      "system": {
+        "provider": "Prometheus",
+        "retention": "30 days",
+        "dashboards": "Grafana"
+      },
+      "application": {
+        "provider": "PostHog",
+        "custom_events": true
+      },
+      "business": {
+        "kpis": [
+          "orders_per_minute",
+          "average_delivery_time",
+          "courier_utilization",
+          "api_response_time"
+        ]
+      }
+    },
+    "alerts": {
+      "channels": ["Slack", "PagerDuty", "Email"],
+      "severity_levels": {
+        "critical": {
+          "response_time": "5 minutes",
+          "examples": ["Service down", "Data breach"]
+        },
+        "warning": {
+          "response_time": "30 minutes",
+          "examples": ["High latency", "Error rate spike"]
+        },
+        "info": {
+          "response_time": "Next business day",
+          "examples": ["Unusual pattern", "Capacity planning"]
+        }
+      }
+    },
+    "slo_sli": {
+      "availability": {
+        "target": "99.9%",
+        "measurement": "Successful requests / Total requests"
+      },
+      "latency": {
+        "p50": "< 100ms",
+        "p99": "< 500ms"
+      },
+      "error_rate": {
+        "target": "< 0.1%"
+      }
+    }
+  },
+  "disaster_recovery": {
+    "rpo": "1 hour",
+    "rto": "4 hours",
+    "backup_strategy": {
+      "databases": {
+        "frequency": "Every 6 hours",
+        "retention": "30 days",
+        "location": "Cross-region S3"
+      },
+      "configurations": {
+        "method": "GitOps",
+        "tool": "ArgoCD"
+      }
+    },
+    "failover": {
+      "trigger": "Automatic on region failure",
+      "dns_ttl": "60 seconds",
+      "data_sync": "Async replication with 1min lag"
+    }
+  },
+  "maintenance": {
+    "windows": {
+      "scheduled": "Sunday 03:00-05:00 UTC+3",
+      "notification": "72 hours advance"
+    },
+    "zero_downtime": {
+      "database_migrations": "Blue-green with fallback",
+      "api_versioning": "Backward compatible for 6 months"
+    }
+  }
+}
