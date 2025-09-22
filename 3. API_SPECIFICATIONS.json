@@ -1,0 +1,181 @@
+{
+  "api_version": "1.0.0",
+  "base_url": "https://api.restaurant95.com",
+  "authentication": {
+    "type": "Bearer Token",
+    "header": "Authorization",
+    "format": "Bearer {api_key}",
+    "additional": {
+      "hmac": {
+        "header": "X-Signature",
+        "algorithm": "HMAC-SHA256",
+        "payload": "{timestamp}.{body}"
+      },
+      "idempotency": {
+        "header": "Idempotency-Key",
+        "format": "UUID v4"
+      }
+    }
+  },
+  "tool_definitions": [
+    {
+      "name": "get_order_status",
+      "description": "Retrieve current status and details of an order",
+      "category": "orders",
+      "parameters": {
+        "order_id": {
+          "type": "string",
+          "required": true,
+          "description": "Unique order identifier"
+        }
+      },
+      "returns": {
+        "status": "string",
+        "eta_minutes": "integer",
+        "courier": "object",
+        "items": "array",
+        "customer": "object",
+        "restaurant": "object"
+      },
+      "errors": ["ORDER_NOT_FOUND", "UNAUTHORIZED"],
+      "sla_ms": 200,
+      "cache_ttl_seconds": 10
+    },
+    {
+      "name": "assign_courier",
+      "description": "Assign or reassign courier to an order",
+      "category": "dispatch",
+      "parameters": {
+        "order_id": {
+          "type": "string",
+          "required": true
+        },
+        "courier_id": {
+          "type": "string",
+          "required": false,
+          "description": "Specific courier ID or auto-assign if null"
+        },
+        "constraints": {
+          "type": "object",
+          "required": false,
+          "properties": {
+            "max_distance_km": "number",
+            "min_rating": "number",
+            "vehicle_type": "string"
+          }
+        },
+        "dry_run": {
+          "type": "boolean",
+          "default": true,
+          "description": "Simulate without executing"
+        }
+      },
+      "returns": {
+        "success": "boolean",
+        "courier": "object",
+        "eta_minutes": "integer",
+        "impact_analysis": "object",
+        "alternative_couriers": "array"
+      },
+      "requires_approval": true,
+      "errors": ["NO_COURIERS_AVAILABLE", "ORDER_NOT_READY"]
+    },
+    {
+      "name": "ops_gesture",
+      "description": "Execute operational gestures like compensation",
+      "category": "operations",
+      "parameters": {
+        "order_id": {
+          "type": "string",
+          "required": true
+        },
+        "gesture_type": {
+          "type": "string",
+          "enum": ["delay_compensation", "quality_issue", "missing_item"],
+          "required": true
+        },
+        "amount_cap": {
+          "type": "number",
+          "required": false,
+          "description": "Maximum compensation amount in TRY"
+        },
+        "dry_run": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "returns": {
+        "success": "boolean",
+        "action_taken": "string",
+        "compensation": "object",
+        "customer_notification": "string"
+      },
+      "requires_approval": true,
+      "audit": "detailed"
+    },
+    {
+      "name": "predict_demand",
+      "description": "AI-powered demand prediction",
+      "category": "analytics",
+      "parameters": {
+        "restaurant_id": {
+          "type": "string",
+          "required": true
+        },
+        "date_range": {
+          "type": "object",
+          "properties": {
+            "start": "date",
+            "end": "date"
+          }
+        },
+        "granularity": {
+          "type": "string",
+          "enum": ["hourly", "daily", "weekly"],
+          "default": "daily"
+        }
+      },
+      "returns": {
+        "predictions": "array",
+        "confidence": "number",
+        "factors": "object",
+        "recommendations": "array"
+      }
+    }
+  ],
+  "rate_limits": {
+    "default": {
+      "requests_per_second": 100,
+      "burst": 200
+    },
+    "by_tier": {
+      "free": {
+        "requests_per_second": 10,
+        "daily_limit": 10000
+      },
+      "pro": {
+        "requests_per_second": 100,
+        "daily_limit": 1000000
+      },
+      "enterprise": {
+        "requests_per_second": 1000,
+        "daily_limit": null
+      }
+    }
+  },
+  "webhooks": {
+    "events": [
+      "order.created",
+      "order.updated",
+      "order.completed",
+      "courier.assigned",
+      "courier.location_updated",
+      "payment.processed"
+    ],
+    "retry_policy": {
+      "max_attempts": 3,
+      "backoff": "exponential",
+      "initial_delay_ms": 1000
+    }
+  }
+}
