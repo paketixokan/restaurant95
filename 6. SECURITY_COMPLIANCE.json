@@ -1,0 +1,169 @@
+{
+  "security_framework": "Zero Trust Architecture",
+  "compliance_standards": ["KVKK", "PCI-DSS", "SOC2", "ISO27001"],
+  "authentication": {
+    "methods": {
+      "api_keys": {
+        "format": "rest95_live_*",
+        "rotation_days": 90,
+        "storage": "Hashicorp Vault"
+      },
+      "jwt": {
+        "algorithm": "RS256",
+        "expiry_minutes": 15,
+        "refresh_token_days": 30
+      },
+      "oauth2": {
+        "providers": ["Google", "Microsoft"],
+        "scopes": ["openid", "profile", "email"]
+      }
+    },
+    "mfa": {
+      "required_for": ["admin", "financial_operations"],
+      "methods": ["totp", "sms", "push"]
+    }
+  },
+  "authorization": {
+    "model": "RBAC with ABAC policies",
+    "roles": {
+      "super_admin": {
+        "permissions": ["*"],
+        "description": "Full system access"
+      },
+      "restaurant_owner": {
+        "permissions": [
+          "restaurant:*:own",
+          "order:read:own",
+          "analytics:read:own"
+        ]
+      },
+      "restaurant_staff": {
+        "permissions": [
+          "order:read:own",
+          "order:update:own"
+        ]
+      },
+      "courier": {
+        "permissions": [
+          "order:read:assigned",
+          "order:update:status",
+          "location:update:own"
+        ]
+      }
+    },
+    "policies": {
+      "data_isolation": "Strict tenant isolation via RLS",
+      "api_scopes": "Granular permission model",
+      "audit_trail": "All permission checks logged"
+    }
+  },
+  "encryption": {
+    "at_rest": {
+      "algorithm": "AES-256-GCM",
+      "key_management": "AWS KMS",
+      "databases": "Transparent Data Encryption (TDE)"
+    },
+    "in_transit": {
+      "tls_version": "1.3 minimum",
+      "certificates": "Let's Encrypt with auto-renewal",
+      "internal_communication": "mTLS via Istio"
+    },
+    "sensitive_fields": {
+      "pii": ["phone", "email", "address"],
+      "financial": ["card_number", "bank_account"],
+      "credentials": ["api_keys", "passwords"],
+      "method": "Field-level encryption"
+    }
+  },
+  "data_privacy": {
+    "kvkk_compliance": {
+      "data_retention": {
+        "orders": "2 years",
+        "customer_data": "Until deletion request",
+        "logs": "90 days"
+      },
+      "user_rights": {
+        "access": "Self-service portal",
+        "deletion": "Within 30 days",
+        "portability": "JSON/CSV export"
+      },
+      "consent_management": {
+        "storage": "Immutable audit log",
+        "types": ["marketing", "analytics", "third_party"]
+      }
+    },
+    "anonymization": {
+      "techniques": ["k-anonymity", "differential_privacy"],
+      "applies_to": ["analytics", "ml_training"]
+    }
+  },
+  "regulatory_compliance": {
+    "turkish_tax": {
+      "okc_integration": {
+        "protocol": "GMP-3 v5.0",
+        "real_time_reporting": true,
+        "z_report_automation": true
+      },
+      "efatura": {
+        "providers": ["Kolaybi", "Foriba", "Uyumsoft"],
+        "format": "UBL-TR 1.2",
+        "retention_years": 10
+      }
+    },
+    "pci_dss": {
+      "level": "Level 2 Service Provider",
+      "tokenization": "Via payment processor",
+      "card_data_storage": "Never stored"
+    }
+  },
+  "threat_protection": {
+    "ddos": {
+      "provider": "Cloudflare",
+      "rate_limiting": {
+        "api": "100 req/s per IP",
+        "login": "5 attempts per 15 min"
+      }
+    },
+    "waf": {
+      "rules": "OWASP Core Rule Set",
+      "custom_rules": "Block common scanner patterns"
+    },
+    "vulnerability_management": {
+      "scanning": "Weekly automated scans",
+      "dependencies": "Snyk continuous monitoring",
+      "penetration_testing": "Quarterly third-party"
+    }
+  },
+  "incident_response": {
+    "team": {
+      "on_call": "24/7 PagerDuty rotation",
+      "escalation": ["L1: DevOps", "L2: Security", "L3: CTO"]
+    },
+    "playbooks": {
+      "data_breach": "KVKK 72-hour notification",
+      "service_outage": "Status page + customer notification",
+      "security_incident": "Containment -> Investigation -> Recovery"
+    },
+    "forensics": {
+      "log_retention": "1 year cold storage",
+      "tools": ["ELK Stack", "Osquery", "Sysdig"]
+    }
+  },
+  "audit_logging": {
+    "events": [
+      "authentication_attempts",
+      "authorization_decisions",
+      "data_access",
+      "configuration_changes",
+      "api_calls"
+    ],
+    "format": "JSON with correlation IDs",
+    "storage": "Immutable append-only log",
+    "analysis": "Real-time SIEM via Splunk",
+    "retention": {
+      "hot": "30 days",
+      "warm": "90 days",
+      "cold": "1 year"
+    }
+  }
+}
