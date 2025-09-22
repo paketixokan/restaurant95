@@ -1,0 +1,162 @@
+{
+  "integrations": {
+    "pos_systems": [
+      {
+        "name": "Adisyo",
+        "status": "production",
+        "type": "webhook + api",
+        "authentication": "API key",
+        "capabilities": [
+          "menu_sync",
+          "order_injection",
+          "transaction_pull",
+          "inventory_update"
+        ],
+        "endpoints": {
+          "base_url": "https://api.adisyo.com/v2",
+          "webhook_url": "https://webhook.restaurant95.com/adisyo"
+        },
+        "rate_limit": "100 req/min",
+        "documentation": "https://docs.adisyo.com"
+      },
+      {
+        "name": "SambaPOS",
+        "status": "beta",
+        "type": "database_direct",
+        "authentication": "SQL credentials",
+        "connection": {
+          "type": "MSSQL",
+          "port": 1433,
+          "encrypted": true
+        },
+        "sync_frequency": "5 minutes"
+      },
+      {
+        "name": "Menulux",
+        "status": "planned",
+        "estimated": "Q2 2024"
+      }
+    ],
+    "delivery_platforms": [
+      {
+        "name": "Yemeksepeti",
+        "status": "production",
+        "authentication": {
+          "type": "OAuth2 + PGP",
+          "encryption": "Required for credentials"
+        },
+        "capabilities": [
+          "menu_sync",
+          "order_receive",
+          "status_update",
+          "restaurant_availability"
+        ],
+        "requirements": {
+          "ip_whitelist": true,
+          "ssl_certificate": "Required",
+          "pgp_key": "Required for auth"
+        }
+      },
+      {
+        "name": "Getir Yemek",
+        "status": "production",
+        "authentication": "Restaurant secret key",
+        "webhook_validation": "HMAC-SHA256"
+      },
+      {
+        "name": "Trendyol Yemek",
+        "status": "development",
+        "notes": "Online payments only"
+      }
+    ],
+    "payment_providers": [
+      {
+        "name": "Iyzico",
+        "status": "production",
+        "commission": "2.99% + 0.25 TRY",
+        "settlement": "T+1",
+        "features": [
+          "3D Secure",
+          "Installments",
+          "Marketplace",
+          "Subscription"
+        ]
+      },
+      {
+        "name": "PayTR",
+        "status": "production",
+        "commission": "2.89% + 0.29 TRY"
+      },
+      {
+        "name": "Stripe",
+        "status": "planned",
+        "purpose": "International expansion"
+      }
+    ],
+    "compliance_providers": [
+      {
+        "name": "Kolaybi",
+        "type": "e-fatura",
+        "api_type": "REST",
+        "storage": "10GB included"
+      },
+      {
+        "name": "Foriba (Sovos)",
+        "type": "e-fatura + e-defter",
+        "api_type": "SOAP",
+        "certification": "GIB approved"
+      }
+    ],
+    "communication": [
+      {
+        "name": "Twilio",
+        "services": ["SMS", "WhatsApp Business", "Voice"],
+        "pricing": {
+          "sms": "0.028 USD per message",
+          "whatsapp": "0.005 USD per message"
+        }
+      },
+      {
+        "name": "SendGrid",
+        "service": "Email",
+        "tier": "Pro 100K emails/month"
+      }
+    ],
+    "analytics_ai": [
+      {
+        "name": "OpenAI",
+        "models": ["GPT-4", "GPT-4-Vision", "Embeddings"],
+        "usage": [
+          "Chat interface",
+          "Report generation",
+          "Menu optimization"
+        ]
+      },
+      {
+        "name": "Google Maps",
+        "apis": ["Places", "Geocoding", "Distance Matrix"],
+        "quota": "100K requests/month"
+      },
+      {
+        "name": "Weather API",
+        "provider": "OpenWeatherMap",
+        "usage": "Demand prediction"
+      }
+    ]
+  },
+  "integration_patterns": {
+    "webhook": {
+      "retry": "Exponential backoff",
+      "timeout": "30 seconds",
+      "validation": "HMAC signature"
+    },
+    "polling": {
+      "frequency": "Configurable 1-60 minutes",
+      "batch_size": 100
+    },
+    "streaming": {
+      "protocol": "WebSocket",
+      "fallback": "Long polling"
+    }
+  }
+}
