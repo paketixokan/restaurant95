@@ -1,0 +1,143 @@
+{
+  "policy_version": "1.0.0",
+  "orchestration_rules": {
+    "agent_selection": {
+      "criteria": [
+        {
+          "condition": "task.complexity > 0.8",
+          "agent": "claude-3.5",
+          "reason": "Complex reasoning and edge cases"
+        },
+        {
+          "condition": "task.type == 'planning'",
+          "agent": "gpt-5",
+          "reason": "Multi-step planning capabilities"
+        },
+        {
+          "condition": "task.type == 'routing'",
+          "agent": "specialized-routing-model",
+          "reason": "Domain-specific optimization"
+        }
+      ],
+      "fallback": "gpt-4",
+      "load_balancing": "round-robin"
+    },
+    "decision_trees": {
+      "order_delay_handling": {
+        "trigger": "order.eta > order.promised_time",
+        "steps": [
+          {
+            "action": "evaluate_delay",
+            "threshold_minutes": 15,
+            "next_if_exceeded": "compensation_flow"
+          },
+          {
+            "action": "compensation_flow",
+            "sub_steps": [
+              "calculate_compensation",
+              "get_approval",
+              "execute_compensation",
+              "notify_customer"
+            ]
+          }
+        ]
+      },
+      "courier_assignment": {
+        "trigger": "order.status == 'ready_for_pickup'",
+        "steps": [
+          {
+            "action": "find_available_couriers",
+            "constraints": {
+              "max_distance_km": 5,
+              "min_rating": 4.0
+            }
+          },
+          {
+            "action": "optimize_assignment",
+            "factors": ["distance", "courier_load", "delivery_time"]
+          },
+          {
+            "action": "confirm_assignment",
+            "require_acceptance": true,
+            "timeout_seconds": 30
+          }
+        ]
+      }
+    },
+    "sla_policies": {
+      "default_sla_minutes": 15,
+      "by_order_type": {
+        "regular": 45,
+        "express": 20,
+        "scheduled": null
+      },
+      "escalation": {
+        "level_1": {
+          "trigger": "delay > 5 minutes",
+          "action": "notify_restaurant"
+        },
+        "level_2": {
+          "trigger": "delay > 10 minutes",
+          "action": "notify_customer_proactive"
+        },
+        "level_3": {
+          "trigger": "delay > 15 minutes",
+          "action": "automatic_compensation"
+        }
+      }
+    },
+    "approval_requirements": {
+      "monetary_threshold": {
+        "amount_try": 500,
+        "requires": "restaurant_approval"
+      },
+      "operational_changes": {
+        "courier_reassignment": "auto_approve",
+        "order_cancellation": "customer_confirmation",
+        "refund_full": "manager_approval"
+      }
+    },
+    "dry_run_policy": {
+      "mandatory_for": [
+        "financial_operations",
+        "courier_reassignments",
+        "bulk_operations"
+      ],
+      "optional_for": [
+        "read_operations",
+        "notifications"
+      ],
+      "auto_approve_if": {
+        "impact_score": "< 0.3",
+        "affected_orders": "< 5",
+        "financial_impact": "< 100 TRY"
+      }
+    }
+  },
+  "context_enrichment": {
+    "always_include": [
+      "restaurant_metrics",
+      "current_weather",
+      "traffic_conditions",
+      "historical_patterns"
+    ],
+    "conditional_include": {
+      "peak_hours": ["competitor_pricing", "surge_multipliers"],
+      "bad_weather": ["extended_etas", "hazard_pay"]
+    }
+  },
+  "learning_feedback": {
+    "track_decisions": true,
+    "success_metrics": [
+      "customer_satisfaction",
+      "delivery_time",
+      "order_accuracy",
+      "cost_efficiency"
+    ],
+    "adjustment_triggers": {
+      "success_rate_below": 0.7,
+      "customer_complaints_above": 0.05,
+      "cost_overrun_above": 0.1
+    }
+  }
+}
