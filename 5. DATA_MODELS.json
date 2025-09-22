@@ -1,0 +1,275 @@
+{
+  "schema_version": "1.0.0",
+  "database": "PostgreSQL",
+  "multi_tenancy": "schema-per-tenant",
+  "entities": {
+    "restaurant": {
+      "table": "restaurants",
+      "fields": {
+        "id": {
+          "type": "uuid",
+          "primary": true
+        },
+        "tenant_id": {
+          "type": "uuid",
+          "required": true,
+          "index": true
+        },
+        "name": {
+          "type": "string",
+          "max_length": 255,
+          "required": true
+        },
+        "slug": {
+          "type": "string",
+          "unique": true,
+          "index": true
+        },
+        "location": {
+          "type": "point",
+          "srid": 4326,
+          "index": "gist"
+        },
+        "address": {
+          "type": "jsonb",
+          "schema": {
+            "street": "string",
+            "district": "string",
+            "city": "string",
+            "postal_code": "string"
+          }
+        },
+        "contact": {
+          "type": "jsonb",
+          "schema": {
+            "phone": "string",
+            "email": "string",
+            "whatsapp": "string"
+          }
+        },
+        "integration": {
+          "type": "jsonb",
+          "schema": {
+            "pos_type": "string",
+            "pos_credentials": "encrypted",
+            "okc_device_id": "string",
+            "efatura_provider": "string"
+          }
+        },
+        "settings": {
+          "type": "jsonb",
+          "schema": {
+            "auto_accept_orders": "boolean",
+            "prep_time_minutes": "integer",
+            "delivery_radius_km": "number",
+            "min_order_amount": "number"
+          }
+        },
+        "metrics": {
+          "type": "jsonb",
+          "schema": {
+            "total_orders": "integer",
+            "avg_rating": "number",
+            "monthly_revenue": "number"
+          }
+        },
+        "created_at": {
+          "type": "timestamp",
+          "default": "now()"
+        },
+        "updated_at": {
+          "type": "timestamp",
+          "default": "now()"
+        }
+      },
+      "indexes": [
+        "CREATE INDEX idx_restaurant_location ON restaurants USING gist (location)",
+        "CREATE INDEX idx_restaurant_tenant ON restaurants (tenant_id)",
+        "CREATE INDEX idx_restaurant_slug ON restaurants (slug)"
+      ],
+      "relationships": {
+        "orders": {
+          "type": "one-to-many",
+          "target": "orders",
+          "foreign_key": "restaurant_id"
+        },
+        "menu_items": {
+          "type": "one-to-many",
+          "target": "menu_items",
+          "foreign_key": "restaurant_id"
+        },
+        "staff": {
+          "type": "one-to-many",
+          "target": "staff_members",
+          "foreign_key": "restaurant_id"
+        }
+      }
+    },
+    "order": {
+      "table": "orders",
+      "fields": {
+        "id": {
+          "type": "uuid",
+          "primary": true
+        },
+        "order_number": {
+          "type": "string",
+          "unique": true,
+          "index": true
+        },
+        "restaurant_id": {
+          "type": "uuid",
+          "foreign_key": "restaurants.id",
+          "required": true
+        },
+        "customer_id": {
+          "type": "uuid",
+          "foreign_key": "customers.id"
+        },
+        "courier_id": {
+          "type": "uuid",
+          "foreign_key": "couriers.id"
+        },
+        "status": {
+          "type": "enum",
+          "values": ["pending", "confirmed", "preparing", "ready", "picked_up", "delivered", "cancelled"],
+          "index": true
+        },
+        "items": {
+          "type": "jsonb",
+          "schema": [
+            {
+              "item_id": "uuid",
+              "name": "string",
+              "quantity": "integer",
+              "price": "number",
+              "modifiers": "array"
+            }
+          ]
+        },
+        "amounts": {
+          "type": "jsonb",
+          "schema": {
+            "subtotal": "number",
+            "tax": "number",
+            "delivery_fee": "number",
+            "tip": "number",
+            "total": "number"
+          }
+        },
+        "delivery": {
+          "type": "jsonb",
+          "schema": {
+            "address": "object",
+            "location": "point",
+            "notes": "string",
+            "promised_time": "timestamp",
+            "actual_time": "timestamp"
+          }
+        },
+        "timestamps": {
+          "type": "jsonb",
+          "schema": {
+            "created": "timestamp",
+            "confirmed": "timestamp",
+            "ready": "timestamp",
+            "picked_up": "timestamp",
+            "delivered": "timestamp"
+          }
+        }
+      },
+      "indexes": [
+        "CREATE INDEX idx_order_status ON orders (status)",
+        "CREATE INDEX idx_order_restaurant ON orders (restaurant_id)",
+        "CREATE INDEX idx_order_created ON orders ((timestamps->>'created'))"
+      ]
+    },
+    "courier": {
+      "table": "couriers",
+      "fields": {
+        "id": {
+          "type": "uuid",
+          "primary": true
+        },
+        "name": {
+          "type": "string",
+          "required": true
+        },
+        "phone": {
+          "type": "string",
+          "unique": true,
+          "required": true
+        },
+        "vehicle": {
+          "type": "jsonb",
+          "schema": {
+            "type": ["bicycle", "motorcycle", "car"],
+            "plate": "string",
+            "model": "string"
+          }
+        },
+        "location": {
+          "type": "point",
+          "srid": 4326
+        },
+        "status": {
+          "type": "enum",
+          "values": ["offline", "available", "busy", "returning"],
+          "index": true
+        },
+        "metrics": {
+          "type": "jsonb",
+          "schema": {
+            "total_deliveries": "integer",
+            "avg_rating": "number",
+            "on_time_rate": "number"
+          }
+        }
+      }
+    },
+    "transaction": {
+      "table": "transactions",
+      "timescale": true,
+      "fields": {
+        "time": {
+          "type": "timestamptz",
+          "primary": true
+        },
+        "restaurant_id": {
+          "type": "uuid",
+          "primary": true
+        },
+        "type": {
+          "type": "string",
+          "enum": ["sale", "refund", "adjustment"]
+        },
+        "amount": {
+          "type": "decimal(10,2)"
+        },
+        "payment_method": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string",
+          "enum": ["pos", "online", "phone"]
+        },
+        "metadata": {
+          "type": "jsonb"
+        }
+      },
+      "hypertable": {
+        "time_column": "time",
+        "chunk_time_interval": "1 day",
+        "compression": {
+          "after": "7 days"
+        }
+      }
+    }
+  },
+  "migrations": {
+    "strategy": "forward-only",
+    "tool": "node-pg-migrate",
+    "location": "/migrations",
+    "naming": "timestamp-description"
+  }
+}
