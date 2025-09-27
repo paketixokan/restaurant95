@@ -13,3 +13,124 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model Restaurant {
+  id            String   @id @default(cuid())
+  name          String
+  slug          String   @unique
+  phone         String
+  address       String
+  taxNumber     String   @map("vergi_no")
+  mersisNumber  String?  @map("mersis_no")
+  okcDeviceId   String?  @map("okc_device_id")
+  
+  orders        Order[]
+  menus         Menu[]
+  customers     Customer[]
+  aiLogs        AILog[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@map("restaurants")
+}
+
+model Order {
+  id            String   @id @default(cuid())
+  restaurantId  String
+  restaurant    Restaurant @relation(fields: [restaurantId], references: [id])
+  
+  orderNumber   String
+  status        OrderStatus @default(PENDING)
+  source        OrderSource
+  totalAmount   Decimal  @db.Money
+  
+  customerName  String?
+  customerPhone String?
+  deliveryAddress String?
+  
+  courierAssigned String?
+  aiDecisions   Json[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([restaurantId, status])
+  @@map("orders")
+}
+
+model Menu {
+  id            String   @id @default(cuid())
+  restaurantId  String
+  restaurant    Restaurant @relation(fields: [restaurantId], references: [id])
+  
+  name          String
+  description   String?
+  price         Decimal  @db.Money
+  category      String
+  isActive      Boolean  @default(true)
+  
+  aiOptimized   Boolean  @default(false)
+  profitMargin  Decimal?
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@map("menu_items")
+}
+
+model Customer {
+  id            String   @id @default(cuid())
+  restaurantId  String
+  restaurant    Restaurant @relation(fields: [restaurantId], references: [id])
+  
+  name          String
+  phone         String
+  email         String?
+  
+  totalOrders   Int      @default(0)
+  totalSpent    Decimal  @default(0) @db.Money
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@unique([restaurantId, phone])
+  @@map("customers")
+}
+
+model AILog {
+  id            String   @id @default(cuid())
+  restaurantId  String
+  restaurant    Restaurant @relation(fields: [restaurantId], references: [id])
+  
+  functionName  String
+  parameters    Json
+  result        Json
+  dryRun        Boolean
+  approved      Boolean?
+  executedAt    DateTime?
+  
+  createdAt     DateTime @default(now())
+  
+  @@map("ai_logs")
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  DELIVERING
+  DELIVERED
+  CANCELLED
+}
+
+enum OrderSource {
+  WEBSITE
+  WHATSAPP
+  YEMEKSEPETI
+  GETIR
+  TRENDYOL
+  PHONE
+  WALKIN
+}

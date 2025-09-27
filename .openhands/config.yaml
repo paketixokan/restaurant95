@@ -1,0 +1,22 @@
+project:
+  name: Restaurant95
+  type: monorepo
+  language: javascript
+
+context:
+  - Turkish restaurant operating system
+  - AI-native with function calling
+  - Fastify backend on port 3001
+  - Mock database for now
+
+files_to_watch:
+  - apps/api/src/**/*.js
+  - packages/**/*.js
+
+tasks:
+  current_focus: "Adisyo webhook integration"
+
+constraints:
+  - Use async/await
+  - Add error handling
+  - Log all operations
