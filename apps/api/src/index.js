@@ -67,3 +67,7 @@ const start = async () => {
 }
 
 start()
+
+// Register Adisyo webhook
+const adisyoWebhook = require('./adisyo-webhook')
+fastify.register(adisyoWebhook)
